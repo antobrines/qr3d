@@ -1,0 +1,5 @@
+flask
+qrcode[svg]
+pillow
+pyzbar
+cadquery

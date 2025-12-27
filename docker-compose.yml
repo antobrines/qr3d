@@ -1,0 +1,10 @@
+services:
+  qr3d-app: # Ce nom DOIT correspondre au "Service Name" de ta capture
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qr3d-app
+    restart: always
+    environment:
+      - FLASK_ENV=production
+    # Pas besoin de ports: ici, Dokploy/Traefik s'en occupe via le port 5000

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>QR 3D Designer Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  </head>
+  <body class="bg-[#0f172a] text-slate-200 min-h-screen font-sans">
+    <div class="max-w-6xl mx-auto py-8 px-4">
+      <header class="mb-10 flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-black text-white tracking-tight">
+            QR<span class="text-blue-500">3D</span> STUDIO
+          </h1>
+          <p class="text-slate-400 text-sm">
+            Générateur de porte-clés CAO haute précision
+          </p>
+        </div>
+        <div
+          id="status-tag"
+          class="px-4 py-1 bg-slate-800 rounded-full text-xs font-bold border border-slate-700"
+        >
+          PRÊT
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-5 space-y-6">
+          <form
+            id="qr-form"
+            class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700 shadow-2xl space-y-6"
+          >
+            <div class="space-y-3">
+              <label
+                class="text-xs font-black uppercase text-slate-500 tracking-widest"
+              >
+                Source des données
+              </label>
+
+              <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl">
+                <button
+                  type="button"
+                  onclick="setSource('url')"
+                  id="nav-url"
+                  class="py-2 rounded-lg text-sm font-bold bg-blue-600 text-white transition-all"
+                >
+                  URL / TEXTE
+                </button>
+                <button
+                  type="button"
+                  onclick="setSource('file')"
+                  id="nav-file"
+                  class="py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all"
+                >
+                  IMAGE QR
+                </button>
+              </div>
+
+              <input
+                type="text"
+                id="url_content"
+                name="url_content"
+                placeholder="https://votre-lien.com"
+                class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+
+              <input
+                type="file"
+                id="qr_file"
+                name="qr_file"
+                accept="image/*"
+                class="hidden w-full bg-slate-900 border border-slate-700 p-2 rounded-xl text-sm"
+              />
+            </div>
+
+            <div class="space-y-4">
+              <label
+                class="text-xs font-black uppercase text-slate-500 tracking-widest"
+              >
+                Configuration 3D
+              </label>
+
+              <div
+                class="flex items-center justify-between bg-slate-900/50 p-3 rounded-xl border border-slate-700"
+              >
+                <span class="text-sm font-medium">Trou porte-clé</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="add_hole"
+                    value="true"
+                    checked
+                    class="sr-only peer"
+                  />
+                  <div
+                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+                  ></div>
+                </label>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div
+                  class="p-3 bg-slate-900/50 rounded-xl border border-slate-700"
+                >
+                  <label class="text-[10px] text-slate-500 uppercase block mb-1"
+                    >Style de rendu</label
+                  >
+                  <select
+                    name="mode"
+                    class="bg-transparent text-sm w-full outline-none font-bold text-blue-400"
+                  >
+                    <option value="relief" class="bg-slate-800">
+                      Relief (Classique)
+                    </option>
+                    <option value="inlay" class="bg-slate-800">
+                      Incrusté (Bi-couleur)
+                    </option>
+                  </select>
+                </div>
+
+                <div
+                  class="p-3 bg-slate-900/50 rounded-xl border border-slate-700"
+                >
+                  <label class="text-[10px] text-slate-500 uppercase block mb-1"
+                    >Épaisseur (mm)</label
+                  >
+                  <input
+                    type="number"
+                    name="thickness"
+                    value="3"
+                    step="0.5"
+                    class="bg-transparent text-sm w-full outline-none font-bold"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label
+                class="text-xs font-black uppercase text-slate-500 tracking-widest block mb-2"
+              >
+                Gravure au dos
+              </label>
+              <input
+                type="text"
+                name="back_text"
+                placeholder="Nom ou Téléphone"
+                class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-4 rounded-2xl font-black text-white shadow-xl shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all"
+            >
+              GÉNÉRER LE STL
+            </button>
+          </form>
+        </div>
+
+        <div class="lg:col-span-7 flex flex-col gap-4">
+          <div
+            class="bg-slate-900 rounded-[2rem] border-4 border-slate-800 h-[500px] overflow-hidden relative shadow-2xl"
+          >
+            <div id="viewer3d" class="w-full h-full"></div>
+
+            <div
+              id="loader"
+              class="hidden absolute inset-0 bg-slate-900/80 flex items-center justify-center backdrop-blur-sm"
+            >
+              <div class="flex flex-col items-center space-y-4">
+                <div
+                  class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
+                ></div>
+                <p class="text-blue-400 font-bold text-sm tracking-widest">
+                  CALCUL GÉOMÉTRIQUE...
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center px-4">
+            <div class="flex items-center space-x-2">
+              <div
+                class="w-2 h-2 bg-green-500 rounded-full animate-pulse"
+              ></div>
+              <span id="qr-info" class="text-xs text-slate-500 font-mono italic"
+                >Aucun contenu détecté</span
+              >
+            </div>
+            <a
+              id="download-btn"
+              href="#"
+              class="hidden bg-white text-slate-900 px-8 py-3 rounded-full font-black text-sm hover:bg-blue-500 hover:text-white transition-all"
+            >
+              TÉLÉCHARGER LE FICHIER
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let scene, camera, renderer, controls, modelMesh;
+
+      function setSource(type) {
+        const isUrl = type === "url";
+        document
+          .getElementById("url_content")
+          .classList.toggle("hidden", !isUrl);
+        document.getElementById("qr_file").classList.toggle("hidden", isUrl);
+
+        document.getElementById("nav-url").className = isUrl
+          ? "py-2 rounded-lg text-sm font-bold bg-blue-600 text-white transition-all"
+          : "py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white";
+
+        document.getElementById("nav-file").className = !isUrl
+          ? "py-2 rounded-lg text-sm font-bold bg-blue-600 text-white transition-all"
+          : "py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white";
+      }
+
+      function init3D() {
+        const container = document.getElementById("viewer3d");
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(
+          40,
+          container.clientWidth / container.clientHeight,
+          0.1,
+          2000
+        );
+        camera.position.set(80, 80, 80);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+        scene.add(hemiLight);
+
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        animate();
+      }
+
+      function frameObject(obj) {
+        // Centre la caméra/controls sur l'objet sans modifier la géométrie
+        const box = new THREE.Box3().setFromObject(obj);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+
+        controls.target.copy(center);
+
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const dist = maxDim * 1.6;
+
+        camera.position.set(center.x + dist, center.y + dist, center.z + dist);
+        camera.lookAt(center);
+        controls.update();
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+
+      document.getElementById("qr-form").onsubmit = async (e) => {
+        e.preventDefault();
+        document.getElementById("loader").classList.remove("hidden");
+
+        const res = await fetch("/generate_preview", {
+          method: "POST",
+          body: new FormData(e.target),
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          alert(data.error);
+          document.getElementById("loader").classList.add("hidden");
+          return;
+        }
+
+        document.getElementById("qr-info").innerText =
+          "Contenu: " + data.qr_content;
+
+        new THREE.STLLoader().load(data.stl_url, (geometry) => {
+          if (modelMesh) scene.remove(modelMesh);
+
+          const material = new THREE.MeshStandardMaterial({
+            color: 0xe5e7eb,
+            roughness: 0.3,
+            metalness: 0.5,
+          });
+
+          modelMesh = new THREE.Mesh(geometry, material);
+
+          // IMPORTANT : on ne fait plus geometry.center()
+          modelMesh.rotation.x = -Math.PI / 2;
+          scene.add(modelMesh);
+
+          frameObject(modelMesh);
+
+          document.getElementById("download-btn").href = data.stl_url;
+          document.getElementById("download-btn").classList.remove("hidden");
+          document.getElementById("loader").classList.add("hidden");
+        });
+      };
+
+      window.onload = init3D;
+      window.onresize = () => {
+        const container = document.getElementById("viewer3d");
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      };
+    </script>
+  </body>
+</html>
